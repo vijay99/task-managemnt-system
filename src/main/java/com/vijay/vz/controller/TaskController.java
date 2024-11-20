@@ -43,5 +43,11 @@ public class TaskController {
     public ResponseEntity<List<Task>> getPendingTasks(){
         return ResponseEntity.ok(taskService.getPendingTasks());
     }
+
+
+    @GetMapping("/getTask/{id}")
+    public ResponseEntity<Task> getPendingTasks(@PathVariable String id){
+        return ResponseEntity.ok(taskService.getTaskById(id));
+    }
 }
 
