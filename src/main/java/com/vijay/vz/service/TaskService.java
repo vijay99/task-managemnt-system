@@ -1,6 +1,8 @@
 package com.vijay.vz.service;
 
 import com.vijay.vz.entity.Task;
+import com.vijay.vz.exception.BadRequestException;
+import com.vijay.vz.exception.ResourceNotFoundException;
 import com.vijay.vz.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,9 @@ public class TaskService {
     }
 
     public Task createTask(Task task){
+        if(task.getTitle()==null || task.getTitle().isBlank()){
+            throw new BadRequestException("Task title can't be empty");
+        }
         return taskRepository.save(task);
     }
 
@@ -52,4 +57,18 @@ public class TaskService {
         }
       return pendingTasks;
     }
+
+    public Task getTaskById(String id) {
+
+        return taskRepository.findById(id).orElseThrow( () -> new ResourceNotFoundException("Task with id - "+id+" not found"));
+    }
+
+    /*public Task getTaskById(String id) {
+        Optional<Task> optionalTask= taskRepository.findById(id);
+        if(optionalTask.isPresent()){
+            return optionalTask.get();
+        }else{
+            throw new ResourceNotFoundException("Task with id - "+id+" not found");
+        }
+    }*/
 }
