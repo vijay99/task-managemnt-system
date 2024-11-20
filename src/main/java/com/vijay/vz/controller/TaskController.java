@@ -38,5 +38,10 @@ public class TaskController {
         taskService.deleteTask(id);
         return ResponseEntity.ok("Task deleted successfully");
     }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<Task>> getPendingTasks(){
+        return ResponseEntity.ok(taskService.getPendingTasks());
+    }
 }
 

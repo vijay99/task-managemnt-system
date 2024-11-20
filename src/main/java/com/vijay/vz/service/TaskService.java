@@ -43,4 +43,13 @@ public class TaskService {
         taskRepository.deleteById(id);
         System.out.println("I am after deleteing....");
     }
+
+    public List<Task> getPendingTasks(){
+        Optional<List<Task>> allTask= Optional.of(taskRepository.findAll());
+        List<Task> pendingTasks = null;
+        if(allTask.isPresent()){
+            pendingTasks=allTask.get().stream().filter( task -> task.getStatus().equalsIgnoreCase("PENDING")).toList();
+        }
+      return pendingTasks;
+    }
 }
