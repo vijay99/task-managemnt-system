@@ -8,8 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -84,4 +87,64 @@ public class TaskService {
             throw new ResourceNotFoundException("Task with id - "+id+" not found");
         }
     }*/
+
+    //Filtering and Sorting Tasks
+    public List<Task> getPendingTasksSortedByDueDate() {
+        return taskRepository.findAll().stream()
+                .filter(task -> "PENDING".equalsIgnoreCase(task.getStatus()))
+                .filter(task -> {
+                    if (task.getDueDate() == null) {
+                        logger.debug("Skipping task with null dueDate: {}", task);
+                        return false;
+                    }
+                    return true;
+                })
+                .sorted(Comparator.comparing(Task::getDueDate))
+                .toList();
+    }
+
+
+    //Extract only task titles of "Completed" tasks.
+    public List<String> getCompletedTaskTitles(){
+        return taskRepository.findAll().stream()
+                .filter( task -> task.getStatus().equalsIgnoreCase("COMPLETED"))
+                .map(Task::getTitle).toList();
+    }
+
+    //Group tasks by their status and count how many are in each category.
+    public Map<String,Long> getTaskStatusCount(){
+        return taskRepository.findAll().stream()
+                .collect(Collectors.groupingBy(Task::getStatus,Collectors.counting()));
+    }
+
+    //Calculate average priority of all tasks.
+    public double getAverageTaskPriority() {
+        return taskRepository.findAll().stream()
+                .mapToInt(Task::getPriority)
+                .average()
+                .orElse(0.0);
+    }
+
+    //Process high-priority tasks (priority = 1) in parallel.
+    public List<Task> processHighPriorityTasks() {
+        return taskRepository.findAll().stream()
+                .parallel()
+                .filter(task -> task.getPriority() == 1)
+                .peek(task -> System.out.println("Processing task: " + task.getTitle() + " on thread " + Thread.currentThread().getName()))
+                .toList();
+    }
+
+    //Create a summary string for all tasks grouped by status.
+
+    public String getTaskSummaryByStatus() {
+        return taskRepository.findAll().stream()
+                .collect(Collectors.groupingBy(Task::getStatus,
+                        Collectors.mapping(Task::getTitle, Collectors.joining(", "))))
+                .entrySet()
+                .stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining("\n"));
+    }
+
+
 }
